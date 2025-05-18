@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Save, Share } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AlgorithmPageProps {
   title: string;
@@ -22,6 +23,8 @@ const AlgorithmPage = ({
   parametersPanel,
   datasetSelector,
 }: AlgorithmPageProps) => {
+  const { isLoggedIn } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -34,16 +37,19 @@ const AlgorithmPage = ({
               <p className="text-muted-foreground mt-1">{description}</p>
             </div>
             
-            <div className="flex gap-2 mt-4 md:mt-0">
-              <Button variant="outline" size="sm">
-                <Save className="mr-2 h-4 w-4" />
-                Save
-              </Button>
-              <Button variant="outline" size="sm">
-                <Share className="mr-2 h-4 w-4" />
-                Share
-              </Button>
-            </div>
+            {/* Only show save/share buttons for logged-in users */}
+            {isLoggedIn && (
+              <div className="flex gap-2 mt-4 md:mt-0">
+                <Button variant="outline" size="sm">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Share className="mr-2 h-4 w-4" />
+                  Share
+                </Button>
+              </div>
+            )}
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

@@ -1,13 +1,12 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, BookOpen, Home, Save, LogIn, Share, UserPlus, LayoutDashboard } from "lucide-react";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, BookOpen, User, Save, Share, LogIn, UserPlus, LayoutDashboard, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
@@ -17,14 +16,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
-  // Mock authentication state - would be replaced with actual auth logic
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, user, logout } = useAuth();
+  const location = useLocation();
   
-  // Toggle login state (for demo purposes)
-  const toggleLogin = () => setIsLoggedIn(!isLoggedIn);
+  const isAlgorithmPage = location.pathname.includes("/algorithms/");
+
+  // Only show algorithms in the navigation menu when logged in or on an algorithm page
+  const showAlgorithms = isLoggedIn || isAlgorithmPage;
 
   return (
     <header className="flex items-center justify-between p-4 bg-card border-b border-border sticky top-0 z-10">
@@ -53,33 +54,35 @@ const Header = () => {
             </Link>
           </NavigationMenuItem>
           
-          <NavigationMenuItem>
-            <NavigationMenuTrigger>Algorithms</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                {[
-                  { name: "Linear Regression", description: "Predict continuous values based on linear relationships", path: "/algorithms/linear-regression" },
-                  { name: "Logistic Regression", description: "Binary classification model", path: "/algorithms/logistic-regression" },
-                  { name: "Decision Tree", description: "Tree-based decision making model", path: "/algorithms/decision-tree" },
-                  { name: "k-NN", description: "k-Nearest Neighbors classification algorithm", path: "/algorithms/k-nn" },
-                  { name: "SVM", description: "Support Vector Machine for classification tasks", path: "/algorithms/svm" },
-                  { name: "Neural Network", description: "Multi-layer perceptron for complex patterns", path: "/algorithms/neural-network" }
-                ].map((algo) => (
-                  <li key={algo.name}>
-                    <Link
-                      to={algo.path}
-                      className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    >
-                      <div className="text-sm font-medium leading-none">{algo.name}</div>
-                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                        {algo.description}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
+          {showAlgorithms && (
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Algorithms</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                  {[
+                    { name: "Linear Regression", description: "Predict continuous values based on linear relationships", path: "/algorithms/linear-regression" },
+                    { name: "Logistic Regression", description: "Binary classification model", path: "/algorithms/logistic-regression" },
+                    { name: "Decision Tree", description: "Tree-based decision making model", path: "/algorithms/decision-tree" },
+                    { name: "k-NN", description: "k-Nearest Neighbors classification algorithm", path: "/algorithms/k-nn" },
+                    { name: "SVM", description: "Support Vector Machine for classification tasks", path: "/algorithms/svm" },
+                    { name: "Neural Network", description: "Multi-layer perceptron for complex patterns", path: "/algorithms/neural-network" }
+                  ].map((algo) => (
+                    <li key={algo.name}>
+                      <Link
+                        to={algo.path}
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        <div className="text-sm font-medium leading-none">{algo.name}</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          {algo.description}
+                        </p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          )}
           
           <NavigationMenuItem>
             <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
@@ -92,33 +95,48 @@ const Header = () => {
       <div className="flex gap-2">
         {isLoggedIn ? (
           <>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/dashboard">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Dashboard
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" className="hidden sm:flex">
-              <Save className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-            <Button variant="outline" size="sm" className="hidden sm:flex">
-              <Share className="mr-2 h-4 w-4" />
-              Share
-            </Button>
-            <Button variant="default" size="sm" onClick={toggleLogin}>
+            {/* Show Dashboard button only when on an algorithm, getting started, or about page */}
+            {(isAlgorithmPage || location.pathname === "/getting-started" || location.pathname === "/about") && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/dashboard">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Link>
+              </Button>
+            )}
+            
+            {/* Save and Share buttons only shown for logged-in users on algorithm pages */}
+            {isAlgorithmPage && (
+              <>
+                <Button variant="outline" size="sm" className="hidden sm:flex">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
+                </Button>
+                <Button variant="outline" size="sm" className="hidden sm:flex">
+                  <Share className="mr-2 h-4 w-4" />
+                  Share
+                </Button>
+              </>
+            )}
+            
+            <Button variant="default" size="sm" onClick={logout}>
+              <LogOut className="mr-2 h-4 w-4" />
               Log Out
             </Button>
           </>
         ) : (
           <>
-            <Button variant="outline" size="sm" onClick={toggleLogin}>
-              <LogIn className="mr-2 h-4 w-4" />
-              Log In
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/login">
+                <LogIn className="mr-2 h-4 w-4" />
+                Log In
+              </Link>
             </Button>
-            <Button variant="default" size="sm" onClick={toggleLogin}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Sign Up
+            <Button variant="default" size="sm" asChild>
+              <Link to="/signup">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Sign Up
+              </Link>
             </Button>
           </>
         )}

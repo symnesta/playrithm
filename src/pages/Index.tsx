@@ -4,8 +4,11 @@ import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { isLoggedIn } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -24,10 +27,17 @@ const Index = () => {
           
           <div className="grid gap-6 sm:grid-cols-2 max-w-xl mx-auto">
             <Button size="lg" asChild>
-              <Link to="/algorithms/linear-regression">
-                Start Playground
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              {isLoggedIn ? (
+                <Link to="/dashboard">
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              ) : (
+                <Link to="/algorithms/linear-regression">
+                  Start Playground
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              )}
             </Button>
             
             <Button size="lg" variant="outline" asChild>

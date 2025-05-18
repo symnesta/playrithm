@@ -1,10 +1,13 @@
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 import Header from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Save, Share } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import SaveExperimentDialog from "./SaveExperimentDialog";
+import ShareExperimentDialog from "./ShareExperimentDialog";
 
 interface AlgorithmPageProps {
   title: string;
@@ -24,6 +27,26 @@ const AlgorithmPage = ({
   datasetSelector,
 }: AlgorithmPageProps) => {
   const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  
+  // Sample data to be passed to the dialogs
+  const experimentData = {
+    algorithm: title,
+    dataset: "Sample Dataset", // This should be updated with the actual selected dataset
+    parameters: {} // This should be updated with the actual parameters
+  };
+
+  // Redirect guest users to login if they attempt certain actions
+  const handleGuestAction = () => {
+    navigate("/login");
+  };
+
+  const handleSaveExperiment = (experimentName: string) => {
+    console.log("Saving experiment:", experimentName);
+    // In a real app, this would save the experiment to the user's account
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -38,17 +61,21 @@ const AlgorithmPage = ({
             </div>
             
             {/* Only show save/share buttons for logged-in users */}
-            {isLoggedIn && (
+            {isLoggedIn ? (
               <div className="flex gap-2 mt-4 md:mt-0">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)}>
                   <Save className="mr-2 h-4 w-4" />
                   Save
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => setShareDialogOpen(true)}>
                   <Share className="mr-2 h-4 w-4" />
                   Share
                 </Button>
               </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={handleGuestAction}>
+                Log in to save progress
+              </Button>
             )}
           </div>
           
@@ -106,6 +133,22 @@ const AlgorithmPage = ({
       <footer className="border-t border-border p-4 text-center text-sm text-muted-foreground">
         <p>PlayRithm - Interactive Machine Learning Playground</p>
       </footer>
+      
+      {/* Dialogs */}
+      <SaveExperimentDialog
+        open={saveDialogOpen}
+        onOpenChange={setSaveDialogOpen}
+        algorithmType={title}
+        datasetName={experimentData.dataset}
+        parameters={experimentData.parameters}
+        onSave={handleSaveExperiment}
+      />
+      
+      <ShareExperimentDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        experimentData={experimentData}
+      />
     </div>
   );
 };

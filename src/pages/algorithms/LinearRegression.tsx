@@ -7,6 +7,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { PlayIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import VisualizationPanel from "@/components/VisualizationPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const LinearRegression = () => {
   const { isLoggedIn } = useAuth();
@@ -14,6 +16,15 @@ const LinearRegression = () => {
   const [epochs, setEpochs] = useState(100);
   const [regularization, setRegularization] = useState(0);
   const [selectedDataset, setSelectedDataset] = useState("boston");
+  const [datasetType, setDatasetType] = useState("sample");
+  const [isTraining, setIsTraining] = useState(false);
+  const [trainingMetrics, setTrainingMetrics] = useState([
+    { epoch: 1, loss: 0.5, accuracy: 0.6 },
+    { epoch: 2, loss: 0.4, accuracy: 0.65 },
+    { epoch: 3, loss: 0.35, accuracy: 0.7 },
+    { epoch: 4, loss: 0.3, accuracy: 0.75 },
+    { epoch: 5, loss: 0.25, accuracy: 0.8 },
+  ]);
   
   // Sample datasets for Linear Regression
   const sampleDatasets = [
@@ -25,6 +36,27 @@ const LinearRegression = () => {
   const customDatasets = isLoggedIn ? [
     { id: "housing_prices", name: "Housing Prices", description: "Custom housing dataset", features: 79, samples: 1460 },
   ] : [];
+
+  const handleTrainModel = () => {
+    setIsTraining(true);
+    // Simulate training process
+    const newMetrics = [];
+    for (let i = 1; i <= 20; i++) {
+      newMetrics.push({
+        epoch: i,
+        loss: 0.5 * Math.exp(-0.1 * i) + 0.05,
+        accuracy: 0.6 + 0.02 * i * (1 - 0.6),
+        valLoss: 0.55 * Math.exp(-0.08 * i) + 0.07,
+        valAccuracy: 0.58 + 0.018 * i * (1 - 0.58),
+      });
+    }
+    setTrainingMetrics(newMetrics);
+    
+    // Simulate end of training
+    setTimeout(() => {
+      setIsTraining(false);
+    }, 3000);
+  };
   
   const DatasetSelector = (
     <div className="space-y-4">
@@ -32,19 +64,27 @@ const LinearRegression = () => {
         <div className="mb-4">
           <h4 className="text-sm font-medium mb-2">Dataset Type</h4>
           <div className="grid grid-cols-2 gap-2">
-            <div className="border border-border rounded-md p-2 text-center text-sm bg-secondary/30 font-medium">
+            <Button 
+              variant={datasetType === "sample" ? "secondary" : "outline"}
+              className={`p-2 text-center text-sm font-medium ${datasetType === "sample" ? "bg-secondary/30" : ""}`}
+              onClick={() => setDatasetType("sample")}
+            >
               Sample
-            </div>
-            <div className="border border-border rounded-md p-2 text-center text-sm bg-primary/20 font-medium">
+            </Button>
+            <Button
+              variant={datasetType === "custom" ? "secondary" : "outline"} 
+              className={`p-2 text-center text-sm font-medium ${datasetType === "custom" ? "bg-primary/20" : ""}`}
+              onClick={() => setDatasetType("custom")}
+            >
               Custom
-            </div>
+            </Button>
           </div>
         </div>
       )}
       
       <RadioGroup value={selectedDataset} onValueChange={setSelectedDataset}>
         {/* Sample Datasets Section */}
-        {sampleDatasets.length > 0 && (
+        {(datasetType === "sample" || !isLoggedIn) && sampleDatasets.length > 0 && (
           <>
             <h4 className="text-sm font-medium mb-2">Sample Datasets</h4>
             {sampleDatasets.map(dataset => (
@@ -65,7 +105,7 @@ const LinearRegression = () => {
         )}
         
         {/* Custom Datasets Section - Only visible when logged in */}
-        {isLoggedIn && customDatasets.length > 0 && (
+        {isLoggedIn && datasetType === "custom" && customDatasets.length > 0 && (
           <>
             <h4 className="text-sm font-medium mt-4 mb-2">Your Datasets</h4>
             {customDatasets.map(dataset => (
@@ -142,25 +182,10 @@ const LinearRegression = () => {
         />
       </div>
       
-      <Button className="w-full">
+      <Button className="w-full" onClick={handleTrainModel} disabled={isTraining}>
         <PlayIcon className="mr-2 h-4 w-4" />
-        Train Model
+        {isTraining ? "Training..." : "Train Model"}
       </Button>
-    </div>
-  );
-  
-  const VisualizationPanel = (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center">
-        <p className="text-muted-foreground mb-4">
-          Select a dataset and adjust parameters to visualize model training.
-        </p>
-        <div className="w-full h-64 bg-muted/30 rounded-md flex items-center justify-center">
-          <p className="text-muted-foreground">
-            Visualization will appear here
-          </p>
-        </div>
-      </div>
     </div>
   );
 
@@ -170,7 +195,13 @@ const LinearRegression = () => {
       description="Predict continuous values based on linear relationships between variables"
       datasetSelector={DatasetSelector}
       parametersPanel={ParametersPanel}
-      visualizationPanel={VisualizationPanel}
+      visualizationPanel={
+        <VisualizationPanel
+          trainingMetrics={trainingMetrics}
+          modelType="linear-regression"
+          isTraining={isTraining}
+        />
+      }
     >
       <div className="bg-card p-4 rounded-lg border border-border">
         <h3 className="text-lg font-medium mb-4">About Linear Regression</h3>

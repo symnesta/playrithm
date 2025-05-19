@@ -13,36 +13,125 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import VisualizationPanel from "@/components/VisualizationPanel";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DecisionTree = () => {
+  const { isLoggedIn } = useAuth();
   const [maxDepth, setMaxDepth] = useState(3);
   const [minSamplesSplit, setMinSamplesSplit] = useState(2);
   const [criterion, setCriterion] = useState("gini");
   const [selectedDataset, setSelectedDataset] = useState("titanic");
+  const [datasetType, setDatasetType] = useState("sample");
+  const [isTraining, setIsTraining] = useState(false);
+  const [trainingMetrics, setTrainingMetrics] = useState([
+    { epoch: 1, loss: 0.5, accuracy: 0.6 },
+    { epoch: 2, loss: 0.45, accuracy: 0.65 },
+    { epoch: 3, loss: 0.4, accuracy: 0.7 },
+  ]);
   
   const datasets = [
     { id: "titanic", name: "Titanic", description: "Survival prediction dataset", features: 10, samples: 891 },
     { id: "iris", name: "Iris", description: "Iris flower classification", features: 4, samples: 150 },
-    { id: "wine", name: "Wine", description: "Wine classification dataset", features: 13, samples: 178 },
   ];
+  
+  // Custom datasets (only visible when logged in)
+  const customDatasets = isLoggedIn ? [
+    { id: "credit_risk", name: "Credit Risk", description: "Custom credit risk dataset", features: 23, samples: 1000 },
+  ] : [];
+
+  const handleTrainModel = () => {
+    setIsTraining(true);
+    // Simulate training process
+    const newMetrics = [];
+    for (let i = 1; i <= 10; i++) {
+      newMetrics.push({
+        epoch: i,
+        loss: 0.5 * Math.exp(-0.15 * i) + 0.08,
+        accuracy: 0.55 + 0.035 * i * (1 - 0.55),
+      });
+    }
+    setTrainingMetrics(newMetrics);
+    
+    // Simulate end of training
+    setTimeout(() => {
+      setIsTraining(false);
+    }, 2000);
+  };
   
   const DatasetSelector = (
     <div className="space-y-4">
-      <RadioGroup value={selectedDataset} onValueChange={setSelectedDataset}>
-        {datasets.map(dataset => (
-          <div key={dataset.id} className="flex items-start space-x-2 border border-border rounded-md p-3">
-            <RadioGroupItem value={dataset.id} id={dataset.id} />
-            <div className="grid gap-1">
-              <Label htmlFor={dataset.id} className="font-medium">
-                {dataset.name}
-              </Label>
-              <div className="text-sm text-muted-foreground">
-                <p>{dataset.description}</p>
-                <p className="mt-1">{dataset.features} features, {dataset.samples} samples</p>
-              </div>
-            </div>
+      {isLoggedIn && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium mb-2">Dataset Type</h4>
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              variant={datasetType === "sample" ? "secondary" : "outline"}
+              className={`p-2 text-center text-sm font-medium ${datasetType === "sample" ? "bg-secondary/30" : ""}`}
+              onClick={() => setDatasetType("sample")}
+            >
+              Sample
+            </Button>
+            <Button
+              variant={datasetType === "custom" ? "secondary" : "outline"} 
+              className={`p-2 text-center text-sm font-medium ${datasetType === "custom" ? "bg-primary/20" : ""}`}
+              onClick={() => setDatasetType("custom")}
+            >
+              Custom
+            </Button>
           </div>
-        ))}
+        </div>
+      )}
+      
+      <RadioGroup value={selectedDataset} onValueChange={setSelectedDataset}>
+        {/* Sample Datasets Section */}
+        {(datasetType === "sample" || !isLoggedIn) && datasets.length > 0 && (
+          <>
+            <h4 className="text-sm font-medium mb-2">Sample Datasets</h4>
+            {datasets.map(dataset => (
+              <div key={dataset.id} className="flex items-start space-x-2 border border-border rounded-md p-3 bg-secondary/10">
+                <RadioGroupItem value={dataset.id} id={dataset.id} />
+                <div className="grid gap-1">
+                  <Label htmlFor={dataset.id} className="font-medium">
+                    {dataset.name}
+                  </Label>
+                  <div className="text-sm text-muted-foreground">
+                    <p>{dataset.description}</p>
+                    <p className="mt-1">{dataset.features} features, {dataset.samples} samples</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+        
+        {/* Custom Datasets Section - Only visible when logged in */}
+        {isLoggedIn && datasetType === "custom" && customDatasets.length > 0 && (
+          <>
+            <h4 className="text-sm font-medium mt-4 mb-2">Your Datasets</h4>
+            {customDatasets.map(dataset => (
+              <div key={dataset.id} className="flex items-start space-x-2 border border-border rounded-md p-3 bg-primary/5">
+                <RadioGroupItem value={dataset.id} id={dataset.id} />
+                <div className="grid gap-1">
+                  <Label htmlFor={dataset.id} className="font-medium">
+                    {dataset.name}
+                  </Label>
+                  <div className="text-sm text-muted-foreground">
+                    <p>{dataset.description}</p>
+                    <p className="mt-1">{dataset.features} features, {dataset.samples} samples</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+        
+        {/* Message for logged out users */}
+        {!isLoggedIn && (
+          <div className="mt-4 p-3 border border-dashed border-border rounded-md text-center">
+            <p className="text-sm text-muted-foreground">Log in to use your own datasets</p>
+          </div>
+        )}
       </RadioGroup>
     </div>
   );
@@ -92,25 +181,10 @@ const DecisionTree = () => {
         </Select>
       </div>
       
-      <Button className="w-full">
+      <Button className="w-full" onClick={handleTrainModel} disabled={isTraining}>
         <PlayIcon className="mr-2 h-4 w-4" />
-        Train Model
+        {isTraining ? "Training..." : "Train Model"}
       </Button>
-    </div>
-  );
-  
-  const VisualizationPanel = (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center">
-        <p className="text-muted-foreground mb-4">
-          Select a dataset and adjust parameters to visualize the decision tree.
-        </p>
-        <div className="w-full h-64 bg-muted/30 rounded-md flex items-center justify-center">
-          <p className="text-muted-foreground">
-            Tree structure visualization will appear here
-          </p>
-        </div>
-      </div>
     </div>
   );
 
@@ -120,7 +194,13 @@ const DecisionTree = () => {
       description="Tree-based model for classification and regression tasks"
       datasetSelector={DatasetSelector}
       parametersPanel={ParametersPanel}
-      visualizationPanel={VisualizationPanel}
+      visualizationPanel={
+        <VisualizationPanel
+          trainingMetrics={trainingMetrics}
+          modelType="decision-tree"
+          isTraining={isTraining}
+        />
+      }
     >
       <div className="bg-card p-4 rounded-lg border border-border">
         <h3 className="text-lg font-medium mb-4">About Decision Trees</h3>

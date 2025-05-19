@@ -97,30 +97,8 @@ const AlgorithmPage = ({
             
             {/* Right Panel - Visualization and Results */}
             <div className="lg:col-span-3 space-y-6">
-              <div className="bg-card p-4 rounded-lg border border-border min-h-[500px]">
-                <Tabs defaultValue="visualization">
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="visualization">Visualization</TabsTrigger>
-                    <TabsTrigger value="metrics">Performance Metrics</TabsTrigger>
-                    <TabsTrigger value="insights">Insights</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="visualization" className="min-h-[400px]">
-                    {visualizationPanel}
-                  </TabsContent>
-                  
-                  <TabsContent value="metrics">
-                    <div className="h-[400px] flex items-center justify-center">
-                      <p className="text-muted-foreground">Performance metrics will display here as your model trains.</p>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="insights">
-                    <div className="h-[400px] flex items-center justify-center">
-                      <p className="text-muted-foreground">Model insights and explanations will appear here.</p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+              <div className="bg-card p-4 rounded-lg border border-border">
+                {visualizationPanel}
               </div>
               
               {/* Additional Content */}

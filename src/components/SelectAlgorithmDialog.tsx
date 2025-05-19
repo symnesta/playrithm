@@ -77,7 +77,7 @@ const SelectAlgorithmDialog: React.FC<SelectAlgorithmDialogProps> = ({
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
           {algorithms.map((algorithm) => (
-            <Card key={algorithm.id} className="overflow-hidden">
+            <Card key={algorithm.id} className="overflow-hidden hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <CardTitle>{algorithm.name}</CardTitle>
                 <CardDescription>{algorithm.description}</CardDescription>

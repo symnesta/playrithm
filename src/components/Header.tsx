@@ -23,9 +23,10 @@ const Header = () => {
   const location = useLocation();
   
   const isAlgorithmPage = location.pathname.includes("/algorithms/");
-
-  // Only show algorithms in the navigation menu when logged in or on an algorithm page
-  const showAlgorithms = isLoggedIn || isAlgorithmPage;
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/signup";
+  
+  // Always show algorithms in the navigation menu
+  const showAlgorithms = true;
 
   return (
     <header className="flex items-center justify-between p-4 bg-card border-b border-border sticky top-0 z-10">
@@ -105,20 +106,6 @@ const Header = () => {
               </Button>
             )}
             
-            {/* Save and Share buttons only shown for logged-in users on algorithm pages */}
-            {isAlgorithmPage && (
-              <>
-                <Button variant="outline" size="sm" className="hidden sm:flex">
-                  <Save className="mr-2 h-4 w-4" />
-                  Save
-                </Button>
-                <Button variant="outline" size="sm" className="hidden sm:flex">
-                  <Share className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-              </>
-            )}
-            
             <Button variant="default" size="sm" onClick={logout}>
               <LogOut className="mr-2 h-4 w-4" />
               Log Out
@@ -126,18 +113,23 @@ const Header = () => {
           </>
         ) : (
           <>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/login">
-                <LogIn className="mr-2 h-4 w-4" />
-                Log In
-              </Link>
-            </Button>
-            <Button variant="default" size="sm" asChild>
-              <Link to="/signup">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Sign Up
-              </Link>
-            </Button>
+            {/* Only show login/signup when not on auth pages */}
+            {!isAuthPage && (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/login">
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Log In
+                  </Link>
+                </Button>
+                <Button variant="default" size="sm" asChild>
+                  <Link to="/signup">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Sign Up
+                  </Link>
+                </Button>
+              </>
+            )}
           </>
         )}
       </div>

@@ -1,8 +1,8 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ScatterChart, Scatter } from "recharts";
 
 interface TrainingMetric {
   epoch: number;
@@ -18,11 +18,49 @@ interface VisualizationPanelProps {
   isTraining: boolean;
 }
 
+// Sample performance metrics for display
+const samplePerformanceMetrics = {
+  accuracy: 0.87,
+  precision: 0.89,
+  recall: 0.83,
+  f1Score: 0.86,
+  auc: 0.92,
+  mse: 0.034,
+  rmse: 0.184,
+  mae: 0.124
+};
+
 const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   trainingMetrics,
   modelType,
   isTraining
 }) => {
+  const [activeTab, setActiveTab] = useState("metrics");
+  
+  // Sample data for decision boundary visualization
+  const scatterData = [
+    { x: 1, y: 2, class: "A" },
+    { x: 2, y: 3, class: "A" },
+    { x: 3, y: 3, class: "A" },
+    { x: 1, y: 1, class: "A" },
+    { x: 2, y: 2, class: "A" },
+    { x: 7, y: 8, class: "B" },
+    { x: 8, y: 7, class: "B" },
+    { x: 6, y: 9, class: "B" },
+    { x: 9, y: 6, class: "B" },
+    { x: 8, y: 8, class: "B" },
+  ];
+  
+  // Sample weights data
+  const weightsData = [
+    { name: 'Weight 1', value: 0.25 },
+    { name: 'Weight 2', value: -0.54 },
+    { name: 'Weight 3', value: 0.82 },
+    { name: 'Weight 4', value: -0.12 },
+    { name: 'Weight 5', value: 0.44 },
+    { name: 'Bias', value: -0.21 },
+  ];
+
   return (
     <Card className="flex-1">
       <CardHeader className="pb-3">
@@ -42,7 +80,7 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="metrics">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="metrics">Metrics</TabsTrigger>
             <TabsTrigger value="decision-boundary">Decision Boundary</TabsTrigger>
@@ -124,42 +162,83 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
           </TabsContent>
 
           <TabsContent value="decision-boundary" className="h-[300px] pt-4">
-            <div className="visualization-container h-full flex items-center justify-center">
-              <div className="relative h-full w-full">
-                {/* This would be replaced with actual decision boundary visualization */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-muted-foreground">
-                    Decision boundary visualization will appear here
-                  </div>
-                </div>
-                {/* Mock data points */}
-                <div className="data-point bg-visualization-blue" style={{ top: '30%', left: '40%' }} />
-                <div className="data-point bg-visualization-blue" style={{ top: '35%', left: '42%' }} />
-                <div className="data-point bg-visualization-blue" style={{ top: '32%', left: '45%' }} />
-                <div className="data-point bg-visualization-blue" style={{ top: '28%', left: '38%' }} />
-                <div className="data-point bg-visualization-blue" style={{ top: '34%', left: '41%' }} />
-                
-                <div className="data-point bg-visualization-red" style={{ top: '60%', left: '60%' }} />
-                <div className="data-point bg-visualization-red" style={{ top: '65%', left: '62%' }} />
-                <div className="data-point bg-visualization-red" style={{ top: '62%', left: '65%' }} />
-                <div className="data-point bg-visualization-red" style={{ top: '58%', left: '59%' }} />
-                <div className="data-point bg-visualization-red" style={{ top: '63%', left: '64%' }} />
-              </div>
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 20, right: 30, left: 30, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis 
+                  type="number" 
+                  dataKey="x" 
+                  name="X" 
+                  tick={{fill: '#aaa'}}
+                  label={{ value: 'Feature 1', position: 'insideBottomRight', offset: -5, fill: '#aaa' }}
+                />
+                <YAxis 
+                  type="number" 
+                  dataKey="y" 
+                  name="Y" 
+                  tick={{fill: '#aaa'}}
+                  label={{ value: 'Feature 2', angle: -90, position: 'insideLeft', fill: '#aaa' }}
+                />
+                <Tooltip 
+                  cursor={{ strokeDasharray: '3 3' }}
+                  contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }}
+                />
+                <Legend />
+                <Scatter 
+                  name="Class A" 
+                  data={scatterData.filter(d => d.class === "A")} 
+                  fill="#4285F4" 
+                  shape="circle"
+                />
+                <Scatter 
+                  name="Class B" 
+                  data={scatterData.filter(d => d.class === "B")} 
+                  fill="#EA4335" 
+                  shape="circle"
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
           </TabsContent>
 
           <TabsContent value="weights" className="h-[300px] pt-4">
-            <div className="visualization-container h-full flex items-center justify-center">
-              <div className="text-muted-foreground">
-                Weight distribution visualization will appear here
-              </div>
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={weightsData} layout="vertical" margin={{ top: 20, right: 30, left: 60, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis 
+                  type="number" 
+                  tick={{fill: '#aaa'}}
+                  domain={[-1, 1]}
+                  label={{ value: 'Weight Value', position: 'insideBottom', offset: -5, fill: '#aaa' }}
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  tick={{fill: '#aaa'}}
+                  width={100}
+                />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }}
+                />
+                <Legend />
+                <Bar dataKey="value" name="Weight Value" fill="#4285F4" />
+              </BarChart>
+            </ResponsiveContainer>
           </TabsContent>
 
           <TabsContent value="activations" className="h-[300px] pt-4">
-            <div className="visualization-container h-full flex items-center justify-center">
-              <div className="text-muted-foreground">
-                Activation maps visualization will appear here
+            <div className="h-full flex flex-col items-center justify-center gap-4">
+              <div className="text-muted-foreground mb-2">
+                Activation maps visualization
+              </div>
+              <div className="grid grid-cols-4 gap-3 w-full">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <div 
+                    key={i} 
+                    className="aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded border border-border flex items-center justify-center"
+                  >
+                    <span className="text-xs text-muted-foreground">Unit {i}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </TabsContent>

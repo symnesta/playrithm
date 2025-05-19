@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LinearRegression from "./pages/algorithms/LinearRegression";
@@ -15,57 +16,69 @@ import NeuralNetwork from "./pages/algorithms/NeuralNetwork";
 import Dashboard from "./pages/Dashboard";
 import About from "./pages/About";
 import GettingStarted from "./pages/GettingStarted";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
-import { useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
 // Auth protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isLoggedIn } = useAuth();
+const ProtectedRoute = () => {
+  const { isLoggedIn, isLoading } = useAuth();
+  
+  // Show loading state while checking auth status
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
   if (!isLoggedIn) {
     return <Navigate to="/login" />;
   }
-  return <>{children}</>;
+  
+  return <Outlet />;
 };
 
 // Guest only route - for redirecting logged in users away from guest pages
-const GuestRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isLoggedIn } = useAuth();
+const GuestRoute = () => {
+  const { isLoggedIn, isLoading } = useAuth();
+  
+  // Show loading state while checking auth status
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
   if (isLoggedIn) {
     return <Navigate to="/dashboard" />;
   }
-  return <>{children}</>;
-};
-
-// Guest playground route - for redirecting guests to Linear Regression
-const GuestPlaygroundRoute = () => {
-  const { isLoggedIn } = useAuth();
-  if (isLoggedIn) {
-    return <Navigate to="/dashboard" />;
-  }
-  return <Navigate to="/algorithms/linear-regression" />;
+  
+  return <Outlet />;
 };
 
 const AppRoutes = () => {
-  const { isLoggedIn } = useAuth();
-  
   return (
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/getting-started" element={<GettingStarted />} />
       <Route path="/about" element={<About />} />
       
-      {/* Auth routes */}
-      <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
-      <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
+      {/* Auth routes - guest only */}
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Route>
       
-      {/* Dashboard - protected route */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute><Dashboard /></ProtectedRoute>
-      } />
+      {/* Protected routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Route>
       
       {/* Algorithm routes - accessible by all, but with limited features for guests */}
       <Route path="/algorithms/linear-regression" element={<LinearRegression />} />
@@ -75,8 +88,8 @@ const AppRoutes = () => {
       <Route path="/algorithms/svm" element={<SVM />} />
       <Route path="/algorithms/neural-network" element={<NeuralNetwork />} />
       
-      {/* Start playground - redirects guests to Linear Regression, logged in users to Dashboard */}
-      <Route path="/start-playground" element={<GuestPlaygroundRoute />} />
+      {/* Start playground route - redirects guests to Linear Regression, logged in users to Dashboard */}
+      <Route path="/start-playground" element={<Navigate to="/algorithms/linear-regression" />} />
       
       {/* Catch-all route */}
       <Route path="*" element={<NotFound />} />
@@ -84,13 +97,12 @@ const AppRoutes = () => {
   );
 };
 
-// Restructured App component to fix the TooltipProvider issue
+// Main App component 
 const App = () => {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          {/* Correctly placed TooltipProvider as a functional component wrapper */}
           <TooltipProvider>
             <Toaster />
             <Sonner />

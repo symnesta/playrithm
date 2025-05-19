@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, BarChart, Bar, ScatterChart, Scatter, 
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, TooltipProps
 } from "recharts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
@@ -116,6 +116,15 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
     { name: "F1 Score", value: performanceMetrics.f1Score.value }
   ];
 
+  // Custom formatter for tooltip values to handle both string and number types
+  const customTooltipFormatter = (value: any) => {
+    // Check if the value is a number before using toFixed
+    if (typeof value === 'number') {
+      return value.toFixed(2);
+    }
+    return value;
+  };
+
   return (
     <Card className="flex-1">
       <CardHeader className="pb-3">
@@ -166,6 +175,7 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
                     tick={{fill: '#aaa'}}
                   />
                   <Tooltip 
+                    formatter={customTooltipFormatter}
                     contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }} 
                     labelStyle={{ color: '#eee' }}
                     itemStyle={{ color: '#eee' }}
@@ -247,6 +257,7 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
                 <Tooltip 
                   cursor={{ strokeDasharray: '3 3' }}
                   contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }}
+                  formatter={customTooltipFormatter}
                 />
                 <Legend />
                 <Scatter 
@@ -286,7 +297,7 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
                       ))}
                     </Pie>
                     <Tooltip 
-                      formatter={(value) => [`${value.toFixed(2)}`, 'Value']}
+                      formatter={customTooltipFormatter}
                       contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }}
                     />
                     <Legend />
@@ -311,7 +322,7 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
                   ))}
                 </div>
                 {showMetricsInfo && (
-                  <Alert variant="outline" className="mt-2 py-2">
+                  <Alert className="mt-2 py-2">
                     <AlertDescription className="text-xs">
                       {performanceMetrics[showMetricsInfo as keyof typeof performanceMetrics].description}
                     </AlertDescription>
@@ -339,6 +350,7 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
                 />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }}
+                  formatter={customTooltipFormatter}
                 />
                 <Legend />
                 <Bar 

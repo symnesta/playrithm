@@ -5,10 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { PlayIcon } from "lucide-react";
+import { PlayIcon, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import VisualizationPanel from "@/components/VisualizationPanel";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LinearRegression = () => {
   const { isLoggedIn } = useAuth();
@@ -18,13 +19,8 @@ const LinearRegression = () => {
   const [selectedDataset, setSelectedDataset] = useState("boston");
   const [datasetType, setDatasetType] = useState("sample");
   const [isTraining, setIsTraining] = useState(false);
-  const [trainingMetrics, setTrainingMetrics] = useState([
-    { epoch: 1, loss: 0.5, accuracy: 0.6 },
-    { epoch: 2, loss: 0.4, accuracy: 0.65 },
-    { epoch: 3, loss: 0.35, accuracy: 0.7 },
-    { epoch: 4, loss: 0.3, accuracy: 0.75 },
-    { epoch: 5, loss: 0.25, accuracy: 0.8 },
-  ]);
+  const [trainingMetrics, setTrainingMetrics] = useState([]);
+  const [showStepGuide, setShowStepGuide] = useState(true);
   
   // Sample datasets for Linear Regression
   const sampleDatasets = [
@@ -37,8 +33,13 @@ const LinearRegression = () => {
     { id: "housing_prices", name: "Housing Prices", description: "Custom housing dataset", features: 79, samples: 1460 },
   ] : [];
 
+  // Get the active datasets based on selected type
+  const activeDatasets = datasetType === 'custom' ? customDatasets : sampleDatasets;
+
   const handleTrainModel = () => {
     setIsTraining(true);
+    setShowStepGuide(false);
+    
     // Simulate training process
     const newMetrics = [];
     for (let i = 1; i <= 20; i++) {
@@ -83,33 +84,19 @@ const LinearRegression = () => {
       )}
       
       <RadioGroup value={selectedDataset} onValueChange={setSelectedDataset}>
-        {/* Sample Datasets Section */}
-        {(datasetType === "sample" || !isLoggedIn) && sampleDatasets.length > 0 && (
+        {/* Sample/Custom Datasets Section based on selected type */}
+        {(isLoggedIn || datasetType === "sample") && activeDatasets.length > 0 && (
           <>
-            <h4 className="text-sm font-medium mb-2">Sample Datasets</h4>
-            {sampleDatasets.map(dataset => (
-              <div key={dataset.id} className="flex items-start space-x-2 border border-border rounded-md p-3 bg-secondary/10">
-                <RadioGroupItem value={dataset.id} id={dataset.id} />
-                <div className="grid gap-1">
-                  <Label htmlFor={dataset.id} className="font-medium">
-                    {dataset.name}
-                  </Label>
-                  <div className="text-sm text-muted-foreground">
-                    <p>{dataset.description}</p>
-                    <p className="mt-1">{dataset.features} features, {dataset.samples} samples</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-        
-        {/* Custom Datasets Section - Only visible when logged in */}
-        {isLoggedIn && datasetType === "custom" && customDatasets.length > 0 && (
-          <>
-            <h4 className="text-sm font-medium mt-4 mb-2">Your Datasets</h4>
-            {customDatasets.map(dataset => (
-              <div key={dataset.id} className="flex items-start space-x-2 border border-border rounded-md p-3 bg-primary/5">
+            <h4 className="text-sm font-medium mb-2">
+              {isLoggedIn && datasetType === "custom" ? "Your Datasets" : "Sample Datasets"}
+            </h4>
+            {activeDatasets.map(dataset => (
+              <div 
+                key={dataset.id} 
+                className={`flex items-start space-x-2 border border-border rounded-md p-3 ${
+                  datasetType === "custom" ? "bg-primary/5" : "bg-secondary/10"
+                }`}
+              >
                 <RadioGroupItem value={dataset.id} id={dataset.id} />
                 <div className="grid gap-1">
                   <Label htmlFor={dataset.id} className="font-medium">
@@ -129,6 +116,13 @@ const LinearRegression = () => {
         {!isLoggedIn && (
           <div className="mt-4 p-3 border border-dashed border-border rounded-md text-center">
             <p className="text-sm text-muted-foreground">Log in to use your own datasets</p>
+          </div>
+        )}
+        
+        {/* Empty state for custom datasets */}
+        {isLoggedIn && datasetType === "custom" && customDatasets.length === 0 && (
+          <div className="mt-4 p-3 border border-dashed border-border rounded-md text-center">
+            <p className="text-sm text-muted-foreground">No custom datasets available</p>
           </div>
         )}
       </RadioGroup>
@@ -188,6 +182,32 @@ const LinearRegression = () => {
       </Button>
     </div>
   );
+  
+  // Step-by-step guide for Linear Regression
+  const StepGuide = () => (
+    <Card className="mb-6">
+      <CardContent className="pt-6">
+        <h3 className="text-lg font-medium mb-3">Step-by-Step Guide: Linear Regression</h3>
+        <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
+          <li>Select a dataset from the available options on the left panel.</li>
+          <li>Adjust the learning rate - lower values (0.001-0.01) are more stable but slower, higher values may converge faster.</li>
+          <li>Set the number of epochs - more epochs allow for better model convergence but increase training time.</li>
+          <li>Choose regularization strength (λ) - higher values prevent overfitting by penalizing large coefficients.</li>
+          <li>Click "Train Model" to start the training process on the selected dataset.</li>
+          <li>Observe the training metrics and performance visualization.</li>
+          <li>Experiment with different parameter combinations to optimize model performance.</li>
+        </ol>
+        <Alert className="mt-4 bg-blue-500/10">
+          <AlertDescription className="text-sm">
+            <div className="flex gap-2">
+              <Info className="h-4 w-4" />
+              <span>Tip: For this example, start with a learning rate of 0.01, 100 epochs, and no regularization.</span>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <AlgorithmPage
@@ -203,6 +223,8 @@ const LinearRegression = () => {
         />
       }
     >
+      {showStepGuide && <StepGuide />}
+      
       <div className="bg-card p-4 rounded-lg border border-border">
         <h3 className="text-lg font-medium mb-4">About Linear Regression</h3>
         <p className="text-muted-foreground">

@@ -22,36 +22,54 @@ const algorithms = [
     name: "Linear Regression",
     description: "Predict continuous values based on linear relationships between variables",
     path: "/algorithms/linear-regression",
+    category: "Regression",
+    complexity: "Low",
+    useCases: "Price prediction, trend forecasting"
   },
   {
     id: "logistic-regression",
     name: "Logistic Regression",
     description: "Predict categorical values, commonly used for binary classification",
     path: "/algorithms/logistic-regression",
+    category: "Classification",
+    complexity: "Low",
+    useCases: "Spam detection, medical diagnosis"
   },
   {
     id: "decision-tree",
     name: "Decision Tree",
     description: "Tree-based model for classification and regression tasks",
     path: "/algorithms/decision-tree",
+    category: "Classification/Regression",
+    complexity: "Medium",
+    useCases: "Customer segmentation, medical diagnosis"
   },
   {
     id: "k-nn",
     name: "k-Nearest Neighbors",
     description: "Instance-based learning for classification and regression",
     path: "/algorithms/k-nn",
+    category: "Classification/Regression",
+    complexity: "Low",
+    useCases: "Recommendation systems, anomaly detection"
   },
   {
     id: "svm",
     name: "Support Vector Machine",
     description: "Finds optimal decision boundaries for classification",
     path: "/algorithms/svm",
+    category: "Classification",
+    complexity: "Medium",
+    useCases: "Image classification, text categorization"
   },
   {
     id: "neural-network",
     name: "Neural Network",
     description: "Deep learning model inspired by the human brain",
     path: "/algorithms/neural-network",
+    category: "Classification/Regression",
+    complexity: "High",
+    useCases: "Image recognition, natural language processing"
   },
 ];
 
@@ -77,11 +95,22 @@ const SelectAlgorithmDialog: React.FC<SelectAlgorithmDialogProps> = ({
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
           {algorithms.map((algorithm) => (
-            <Card key={algorithm.id} className="overflow-hidden hover:shadow-md transition-shadow">
+            <Card key={algorithm.id} className="overflow-hidden hover:shadow-md transition-shadow border-border">
               <CardHeader className="pb-2">
-                <CardTitle>{algorithm.name}</CardTitle>
+                <div className="flex justify-between items-start">
+                  <CardTitle>{algorithm.name}</CardTitle>
+                  <span className="text-xs bg-secondary rounded-full px-2 py-1">
+                    {algorithm.category}
+                  </span>
+                </div>
                 <CardDescription>{algorithm.description}</CardDescription>
               </CardHeader>
+              <CardContent className="pb-2 text-xs text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Complexity: {algorithm.complexity}</span>
+                  <span>Use Cases: {algorithm.useCases}</span>
+                </div>
+              </CardContent>
               <CardFooter className="pt-2">
                 <Button 
                   onClick={() => handleSelectAlgorithm(algorithm.path)}

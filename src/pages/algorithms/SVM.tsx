@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { PlayIcon } from "lucide-react";
+import { PlayIcon, Info } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -13,36 +13,124 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import VisualizationPanel from "@/components/VisualizationPanel";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const SVM = () => {
+  const { isLoggedIn } = useAuth();
   const [c, setC] = useState(1.0);
   const [kernel, setKernel] = useState("rbf");
   const [gamma, setGamma] = useState(0.1);
   const [selectedDataset, setSelectedDataset] = useState("moons");
+  const [datasetType, setDatasetType] = useState("sample");
+  const [isTraining, setIsTraining] = useState(false);
+  const [trainingMetrics, setTrainingMetrics] = useState([]);
+  const [showStepGuide, setShowStepGuide] = useState(true);
   
-  const datasets = [
+  const sampleDatasets = [
     { id: "moons", name: "Moons", description: "Two interleaving half circles", features: 2, samples: 1000 },
     { id: "breast_cancer", name: "Breast Cancer", description: "Cancer diagnosis classification", features: 30, samples: 569 },
-    { id: "iris", name: "Iris", description: "Iris flower classification", features: 4, samples: 150 },
   ];
+  
+  // Custom datasets (only visible when logged in)
+  const customDatasets = isLoggedIn ? [
+    { id: "custom_binary", name: "Binary Classification", description: "Custom binary classification dataset", features: 10, samples: 800 },
+  ] : [];
+
+  // Get the active datasets based on selected type
+  const activeDatasets = datasetType === 'custom' ? customDatasets : sampleDatasets;
+
+  const handleTrainModel = () => {
+    setIsTraining(true);
+    setShowStepGuide(false);
+    
+    // Generate more detailed training metrics
+    const newMetrics = [];
+    for (let i = 1; i <= 15; i++) {
+      newMetrics.push({
+        epoch: i,
+        loss: 0.42 * Math.exp(-0.13 * i) + 0.08,
+        accuracy: 0.73 + 0.018 * i * (1 - 0.73),
+        valLoss: 0.45 * Math.exp(-0.11 * i) + 0.09,
+        valAccuracy: 0.71 + 0.016 * i * (1 - 0.71),
+      });
+    }
+    setTrainingMetrics(newMetrics);
+    
+    // Simulate end of training
+    setTimeout(() => {
+      setIsTraining(false);
+    }, 2000);
+  };
   
   const DatasetSelector = (
     <div className="space-y-4">
-      <RadioGroup value={selectedDataset} onValueChange={setSelectedDataset}>
-        {datasets.map(dataset => (
-          <div key={dataset.id} className="flex items-start space-x-2 border border-border rounded-md p-3">
-            <RadioGroupItem value={dataset.id} id={dataset.id} />
-            <div className="grid gap-1">
-              <Label htmlFor={dataset.id} className="font-medium">
-                {dataset.name}
-              </Label>
-              <div className="text-sm text-muted-foreground">
-                <p>{dataset.description}</p>
-                <p className="mt-1">{dataset.features} features, {dataset.samples} samples</p>
-              </div>
-            </div>
+      {isLoggedIn && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium mb-2">Dataset Type</h4>
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              variant={datasetType === "sample" ? "secondary" : "outline"}
+              className={`p-2 text-center text-sm font-medium ${datasetType === "sample" ? "bg-secondary/30" : ""}`}
+              onClick={() => setDatasetType("sample")}
+            >
+              Sample
+            </Button>
+            <Button
+              variant={datasetType === "custom" ? "secondary" : "outline"} 
+              className={`p-2 text-center text-sm font-medium ${datasetType === "custom" ? "bg-primary/20" : ""}`}
+              onClick={() => setDatasetType("custom")}
+            >
+              Custom
+            </Button>
           </div>
-        ))}
+        </div>
+      )}
+      
+      <RadioGroup value={selectedDataset} onValueChange={setSelectedDataset}>
+        {/* Sample/Custom Datasets Section based on selected type */}
+        {(isLoggedIn || datasetType === "sample") && activeDatasets.length > 0 && (
+          <>
+            <h4 className="text-sm font-medium mb-2">
+              {isLoggedIn && datasetType === "custom" ? "Your Datasets" : "Sample Datasets"}
+            </h4>
+            {activeDatasets.map(dataset => (
+              <div 
+                key={dataset.id} 
+                className={`flex items-start space-x-2 border border-border rounded-md p-3 ${
+                  datasetType === "custom" ? "bg-primary/5" : "bg-secondary/10"
+                }`}
+              >
+                <RadioGroupItem value={dataset.id} id={dataset.id} />
+                <div className="grid gap-1">
+                  <Label htmlFor={dataset.id} className="font-medium">
+                    {dataset.name}
+                  </Label>
+                  <div className="text-sm text-muted-foreground">
+                    <p>{dataset.description}</p>
+                    <p className="mt-1">{dataset.features} features, {dataset.samples} samples</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+        
+        {/* Message for logged out users */}
+        {!isLoggedIn && (
+          <div className="mt-4 p-3 border border-dashed border-border rounded-md text-center">
+            <p className="text-sm text-muted-foreground">Log in to use your own datasets</p>
+          </div>
+        )}
+        
+        {/* Empty state for custom datasets */}
+        {isLoggedIn && datasetType === "custom" && customDatasets.length === 0 && (
+          <div className="mt-4 p-3 border border-dashed border-border rounded-md text-center">
+            <p className="text-sm text-muted-foreground">No custom datasets available</p>
+          </div>
+        )}
       </RadioGroup>
     </div>
   );
@@ -95,26 +183,43 @@ const SVM = () => {
         />
       </div>
       
-      <Button className="w-full">
+      <Button className="w-full" onClick={handleTrainModel} disabled={isTraining}>
         <PlayIcon className="mr-2 h-4 w-4" />
-        Train Model
+        {isTraining ? "Training..." : "Train Model"}
       </Button>
     </div>
   );
   
-  const VisualizationPanel = (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center">
-        <p className="text-muted-foreground mb-4">
-          Select a dataset and adjust parameters to visualize SVM decision boundaries.
-        </p>
-        <div className="w-full h-64 bg-muted/30 rounded-md flex items-center justify-center">
-          <p className="text-muted-foreground">
-            SVM decision boundary visualization will appear here
-          </p>
-        </div>
-      </div>
-    </div>
+  // Step-by-step guide for SVM
+  const StepGuide = () => (
+    <Card className="mb-6">
+      <CardContent className="pt-6">
+        <h3 className="text-lg font-medium mb-3">Step-by-Step Guide: Support Vector Machine</h3>
+        <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
+          <li>Select a dataset from the available options on the left panel.</li>
+          <li>Choose the regularization parameter (C) - controls the trade-off between achieving a smooth decision boundary and classifying training points correctly.</li>
+          <li>Select a kernel function - determines how the data is transformed into a higher-dimensional space:</li>
+          <ul className="list-disc pl-5 mt-1 mb-1 space-y-1">
+            <li>Linear - for linearly separable data</li>
+            <li>RBF - for non-linear, complex decision boundaries (most common)</li>
+            <li>Polynomial - for curved decision boundaries</li>
+            <li>Sigmoid - creates boundaries resembling neural networks</li>
+          </ul>
+          <li>Adjust the kernel coefficient (γ) - defines how far the influence of a single training example reaches.</li>
+          <li>Click "Train Model" to start the training process.</li>
+          <li>Observe the decision boundary and performance metrics.</li>
+          <li>Experiment with different parameter combinations to optimize performance.</li>
+        </ol>
+        <Alert className="mt-4 bg-blue-500/10">
+          <AlertDescription className="text-sm">
+            <div className="flex gap-2">
+              <Info className="h-4 w-4" />
+              <span>Tip: For most cases, start with RBF kernel, C=1.0, and gamma=0.1, then adjust based on performance.</span>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
   );
 
   return (
@@ -123,8 +228,16 @@ const SVM = () => {
       description="Powerful classification algorithm that finds optimal decision boundaries"
       datasetSelector={DatasetSelector}
       parametersPanel={ParametersPanel}
-      visualizationPanel={VisualizationPanel}
+      visualizationPanel={
+        <VisualizationPanel
+          trainingMetrics={trainingMetrics}
+          modelType="svm"
+          isTraining={isTraining}
+        />
+      }
     >
+      {showStepGuide && <StepGuide />}
+      
       <div className="bg-card p-4 rounded-lg border border-border">
         <h3 className="text-lg font-medium mb-4">About Support Vector Machines</h3>
         <p className="text-muted-foreground">

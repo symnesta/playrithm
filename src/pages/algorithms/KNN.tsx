@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { PlayIcon } from "lucide-react";
+import { PlayIcon, Info } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import VisualizationPanel from "@/components/VisualizationPanel";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const KNN = () => {
   const { isLoggedIn } = useAuth();
@@ -29,8 +31,9 @@ const KNN = () => {
     { epoch: 2, loss: 0.35, accuracy: 0.78 },
     { epoch: 3, loss: 0.32, accuracy: 0.82 },
   ]);
+  const [showStepGuide, setShowStepGuide] = useState(true);
   
-  const datasets = [
+  const sampleDatasets = [
     { id: "iris", name: "Iris", description: "Iris flower classification", features: 4, samples: 150 },
     { id: "breast_cancer", name: "Breast Cancer", description: "Cancer diagnosis classification", features: 30, samples: 569 },
   ];
@@ -40,15 +43,22 @@ const KNN = () => {
     { id: "customer_segments", name: "Customer Segments", description: "Custom customer segmentation data", features: 8, samples: 500 },
   ] : [];
 
+  // Get the active datasets based on selected type
+  const activeDatasets = datasetType === 'custom' ? customDatasets : sampleDatasets;
+
   const handleRunClassification = () => {
     setIsTraining(true);
-    // Simulate classification process
+    setShowStepGuide(false);
+    
+    // Simulate classification process with more detailed metrics
     const newMetrics = [];
     for (let i = 1; i <= 5; i++) {
       newMetrics.push({
         epoch: i,
         loss: 0.4 * Math.exp(-0.12 * i) + 0.1,
         accuracy: 0.7 + 0.05 * i * (1 - 0.7),
+        valLoss: 0.45 * Math.exp(-0.1 * i) + 0.12,
+        valAccuracy: 0.68 + 0.045 * i * (1 - 0.68),
       });
     }
     setTrainingMetrics(newMetrics);
@@ -84,33 +94,19 @@ const KNN = () => {
       )}
       
       <RadioGroup value={selectedDataset} onValueChange={setSelectedDataset}>
-        {/* Sample Datasets Section */}
-        {(datasetType === "sample" || !isLoggedIn) && datasets.length > 0 && (
+        {/* Sample/Custom Datasets Section based on selected type */}
+        {(isLoggedIn || datasetType === "sample") && activeDatasets.length > 0 && (
           <>
-            <h4 className="text-sm font-medium mb-2">Sample Datasets</h4>
-            {datasets.map(dataset => (
-              <div key={dataset.id} className="flex items-start space-x-2 border border-border rounded-md p-3 bg-secondary/10">
-                <RadioGroupItem value={dataset.id} id={dataset.id} />
-                <div className="grid gap-1">
-                  <Label htmlFor={dataset.id} className="font-medium">
-                    {dataset.name}
-                  </Label>
-                  <div className="text-sm text-muted-foreground">
-                    <p>{dataset.description}</p>
-                    <p className="mt-1">{dataset.features} features, {dataset.samples} samples</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-        
-        {/* Custom Datasets Section - Only visible when logged in */}
-        {isLoggedIn && datasetType === "custom" && customDatasets.length > 0 && (
-          <>
-            <h4 className="text-sm font-medium mt-4 mb-2">Your Datasets</h4>
-            {customDatasets.map(dataset => (
-              <div key={dataset.id} className="flex items-start space-x-2 border border-border rounded-md p-3 bg-primary/5">
+            <h4 className="text-sm font-medium mb-2">
+              {isLoggedIn && datasetType === "custom" ? "Your Datasets" : "Sample Datasets"}
+            </h4>
+            {activeDatasets.map(dataset => (
+              <div 
+                key={dataset.id} 
+                className={`flex items-start space-x-2 border border-border rounded-md p-3 ${
+                  datasetType === "custom" ? "bg-primary/5" : "bg-secondary/10"
+                }`}
+              >
                 <RadioGroupItem value={dataset.id} id={dataset.id} />
                 <div className="grid gap-1">
                   <Label htmlFor={dataset.id} className="font-medium">
@@ -130,6 +126,13 @@ const KNN = () => {
         {!isLoggedIn && (
           <div className="mt-4 p-3 border border-dashed border-border rounded-md text-center">
             <p className="text-sm text-muted-foreground">Log in to use your own datasets</p>
+          </div>
+        )}
+
+        {/* Empty state for custom datasets */}
+        {isLoggedIn && datasetType === "custom" && customDatasets.length === 0 && (
+          <div className="mt-4 p-3 border border-dashed border-border rounded-md text-center">
+            <p className="text-sm text-muted-foreground">No custom datasets available</p>
           </div>
         )}
       </RadioGroup>
@@ -187,6 +190,32 @@ const KNN = () => {
     </div>
   );
 
+  // Step-by-step guide for KNN
+  const StepGuide = () => (
+    <Card className="mb-6">
+      <CardContent className="pt-6">
+        <h3 className="text-lg font-medium mb-3">Step-by-Step Guide: k-Nearest Neighbors</h3>
+        <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
+          <li>Select a dataset from the available options on the left panel.</li>
+          <li>Choose the number of neighbors (k) - this defines how many nearest points will be used for classification.</li>
+          <li>Select a weight function - determines how neighbors are weighted in the voting process.</li>
+          <li>Choose a distance metric - defines how distances between points are calculated.</li>
+          <li>Click "Run Classification" to execute the algorithm on the selected dataset.</li>
+          <li>Observe the decision boundary visualization and performance metrics.</li>
+          <li>Experiment with different parameter values to see how they affect the model's performance.</li>
+        </ol>
+        <Alert className="mt-4 bg-blue-500/10">
+          <AlertDescription className="text-sm">
+            <div className="flex gap-2">
+              <Info className="h-4 w-4" />
+              <span>Tip: Start with a moderate k value (5-7) and adjust based on performance.</span>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <AlgorithmPage
       title="k-Nearest Neighbors"
@@ -201,6 +230,8 @@ const KNN = () => {
         />
       }
     >
+      {showStepGuide && <StepGuide />}
+      
       <div className="bg-card p-4 rounded-lg border border-border">
         <h3 className="text-lg font-medium mb-4">About k-Nearest Neighbors</h3>
         <p className="text-muted-foreground">

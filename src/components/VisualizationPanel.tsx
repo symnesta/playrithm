@@ -1,8 +1,14 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ScatterChart, Scatter } from "recharts";
+import { 
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  Tooltip, Legend, BarChart, Bar, ScatterChart, Scatter, 
+  PieChart, Pie, Cell
+} from "recharts";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface TrainingMetric {
   epoch: number;
@@ -18,17 +24,43 @@ interface VisualizationPanelProps {
   isTraining: boolean;
 }
 
-// Sample performance metrics for display
-const samplePerformanceMetrics = {
-  accuracy: 0.87,
-  precision: 0.89,
-  recall: 0.83,
-  f1Score: 0.86,
-  auc: 0.92,
-  mse: 0.034,
-  rmse: 0.184,
-  mae: 0.124
+// Performance metrics with explanations
+const performanceMetrics = {
+  accuracy: {
+    value: 0.87,
+    description: "The proportion of correct predictions among the total number of predictions."
+  },
+  precision: {
+    value: 0.89,
+    description: "The proportion of true positive predictions among all positive predictions."
+  },
+  recall: {
+    value: 0.83,
+    description: "The proportion of true positive predictions among all actual positives."
+  },
+  f1Score: {
+    value: 0.86,
+    description: "Harmonic mean of precision and recall, providing a balance between the two metrics."
+  },
+  auc: {
+    value: 0.92,
+    description: "Area Under the ROC Curve - measures the model's ability to distinguish between classes."
+  },
+  mse: {
+    value: 0.034,
+    description: "Mean Squared Error - average squared difference between predicted and actual values."
+  },
+  rmse: {
+    value: 0.184,
+    description: "Root Mean Squared Error - square root of MSE, in the same units as the target variable."
+  },
+  mae: {
+    value: 0.124,
+    description: "Mean Absolute Error - average absolute difference between predicted and actual values."
+  }
 };
+
+const COLORS = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#8F44AD'];
 
 const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   trainingMetrics,
@@ -36,20 +68,33 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
   isTraining
 }) => {
   const [activeTab, setActiveTab] = useState("metrics");
+  const [showMetricsInfo, setShowMetricsInfo] = useState<string | null>(null);
   
-  // Sample data for decision boundary visualization
-  const scatterData = [
-    { x: 1, y: 2, class: "A" },
-    { x: 2, y: 3, class: "A" },
-    { x: 3, y: 3, class: "A" },
-    { x: 1, y: 1, class: "A" },
-    { x: 2, y: 2, class: "A" },
-    { x: 7, y: 8, class: "B" },
-    { x: 8, y: 7, class: "B" },
-    { x: 6, y: 9, class: "B" },
-    { x: 9, y: 6, class: "B" },
-    { x: 8, y: 8, class: "B" },
-  ];
+  // Generate scatter data with more points for better visualization
+  const generateScatterData = () => {
+    const classAPoints = [];
+    const classBPoints = [];
+    
+    // Generate class A points (cluster 1)
+    for (let i = 0; i < 30; i++) {
+      classAPoints.push({
+        x: Math.random() * 3 + 1,
+        y: Math.random() * 3 + 1,
+        class: "A"
+      });
+    }
+    
+    // Generate class B points (cluster 2)
+    for (let i = 0; i < 30; i++) {
+      classBPoints.push({
+        x: Math.random() * 3 + 6,
+        y: Math.random() * 3 + 6,
+        class: "B"
+      });
+    }
+    
+    return [...classAPoints, ...classBPoints];
+  };
   
   // Sample weights data
   const weightsData = [
@@ -59,6 +104,16 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
     { name: 'Weight 4', value: -0.12 },
     { name: 'Weight 5', value: 0.44 },
     { name: 'Bias', value: -0.21 },
+  ];
+  
+  const scatterData = generateScatterData();
+  
+  // Pie chart data for performance metrics visualization
+  const pieData = [
+    { name: "Accuracy", value: performanceMetrics.accuracy.value },
+    { name: "Precision", value: performanceMetrics.precision.value },
+    { name: "Recall", value: performanceMetrics.recall.value },
+    { name: "F1 Score", value: performanceMetrics.f1Score.value }
   ];
 
   return (
@@ -73,7 +128,7 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
           </div>
           {isTraining && (
             <div className="flex items-center space-x-2">
-              <div className="h-2 w-2 rounded-full bg-visualization-green animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-xs text-muted-foreground">Training...</span>
             </div>
           )}
@@ -81,84 +136,94 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="metrics">Metrics</TabsTrigger>
+          <TabsList className="mb-4">
+            <TabsTrigger value="metrics">Learning Curves</TabsTrigger>
             <TabsTrigger value="decision-boundary">Decision Boundary</TabsTrigger>
-            <TabsTrigger value="weights">Weights</TabsTrigger>
-            <TabsTrigger value="activations">Activations</TabsTrigger>
+            <TabsTrigger value="performance">Performance Metrics</TabsTrigger>
+            <TabsTrigger value="weights">Model Parameters</TabsTrigger>
           </TabsList>
 
           <TabsContent value="metrics" className="h-[300px] pt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trainingMetrics}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                <XAxis 
-                  dataKey="epoch" 
-                  label={{ value: 'Epoch', position: 'insideBottomRight', offset: -5 }} 
-                  tick={{fill: '#aaa'}}
-                />
-                <YAxis 
-                  yAxisId="left" 
-                  label={{ value: 'Loss', angle: -90, position: 'insideLeft' }} 
-                  tick={{fill: '#aaa'}}
-                />
-                <YAxis 
-                  yAxisId="right" 
-                  orientation="right" 
-                  domain={[0, 1]} 
-                  label={{ value: 'Accuracy', angle: 90, position: 'insideRight' }} 
-                  tick={{fill: '#aaa'}}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }} 
-                  labelStyle={{ color: '#eee' }}
-                  itemStyle={{ color: '#eee' }}
-                />
-                <Legend verticalAlign="top" height={36} />
-                <Line 
-                  type="monotone" 
-                  dataKey="loss" 
-                  stroke="#EA4335" 
-                  strokeWidth={2} 
-                  yAxisId="left" 
-                  dot={false}
-                  name="Training Loss"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="accuracy" 
-                  stroke="#4285F4" 
-                  strokeWidth={2} 
-                  yAxisId="right" 
-                  dot={false}
-                  name="Training Accuracy"
-                />
-                {trainingMetrics.some(m => m.valLoss !== undefined) && (
+            {trainingMetrics.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trainingMetrics}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis 
+                    dataKey="epoch" 
+                    label={{ value: 'Epoch', position: 'insideBottomRight', offset: -5 }} 
+                    tick={{fill: '#aaa'}}
+                  />
+                  <YAxis 
+                    yAxisId="left" 
+                    label={{ value: 'Loss', angle: -90, position: 'insideLeft' }} 
+                    tick={{fill: '#aaa'}}
+                  />
+                  <YAxis 
+                    yAxisId="right" 
+                    orientation="right" 
+                    domain={[0, 1]} 
+                    label={{ value: 'Accuracy', angle: 90, position: 'insideRight' }} 
+                    tick={{fill: '#aaa'}}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }} 
+                    labelStyle={{ color: '#eee' }}
+                    itemStyle={{ color: '#eee' }}
+                  />
+                  <Legend verticalAlign="top" height={36} />
                   <Line 
                     type="monotone" 
-                    dataKey="valLoss" 
-                    stroke="#F97316" 
-                    strokeDasharray="5 5"
+                    dataKey="loss" 
+                    stroke="#EA4335" 
                     strokeWidth={2} 
                     yAxisId="left" 
                     dot={false}
-                    name="Validation Loss"
+                    name="Training Loss"
+                    animationDuration={1000}
                   />
-                )}
-                {trainingMetrics.some(m => m.valAccuracy !== undefined) && (
                   <Line 
                     type="monotone" 
-                    dataKey="valAccuracy" 
-                    stroke="#34A853" 
-                    strokeDasharray="5 5"
+                    dataKey="accuracy" 
+                    stroke="#4285F4" 
                     strokeWidth={2} 
                     yAxisId="right" 
                     dot={false}
-                    name="Validation Accuracy"
+                    name="Training Accuracy"
+                    animationDuration={1000}
                   />
-                )}
-              </LineChart>
-            </ResponsiveContainer>
+                  {trainingMetrics.some(m => m.valLoss !== undefined) && (
+                    <Line 
+                      type="monotone" 
+                      dataKey="valLoss" 
+                      stroke="#F97316" 
+                      strokeDasharray="5 5"
+                      strokeWidth={2} 
+                      yAxisId="left" 
+                      dot={false}
+                      name="Validation Loss"
+                      animationDuration={1000}
+                    />
+                  )}
+                  {trainingMetrics.some(m => m.valAccuracy !== undefined) && (
+                    <Line 
+                      type="monotone" 
+                      dataKey="valAccuracy" 
+                      stroke="#34A853" 
+                      strokeDasharray="5 5"
+                      strokeWidth={2} 
+                      yAxisId="right" 
+                      dot={false}
+                      name="Validation Accuracy"
+                      animationDuration={1000}
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-muted-foreground">Train the model to see learning curves</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="decision-boundary" className="h-[300px] pt-4">
@@ -200,6 +265,62 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
             </ResponsiveContainer>
           </TabsContent>
 
+          <TabsContent value="performance" className="h-[300px] pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      animationDuration={1000}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => [`${value.toFixed(2)}`, 'Value']}
+                      contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium">Performance Metrics</h4>
+                <div className="space-y-2">
+                  {Object.entries(performanceMetrics).map(([key, { value, description }]) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        <Info 
+                          className="h-4 w-4 text-muted-foreground cursor-pointer" 
+                          onMouseEnter={() => setShowMetricsInfo(key)}
+                          onMouseLeave={() => setShowMetricsInfo(null)}
+                        />
+                      </div>
+                      <span>{value.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+                {showMetricsInfo && (
+                  <Alert variant="outline" className="mt-2 py-2">
+                    <AlertDescription className="text-xs">
+                      {performanceMetrics[showMetricsInfo as keyof typeof performanceMetrics].description}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
           <TabsContent value="weights" className="h-[300px] pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weightsData} layout="vertical" margin={{ top: 20, right: 30, left: 60, bottom: 20 }}>
@@ -220,27 +341,14 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
                   contentStyle={{ backgroundColor: 'rgba(24, 24, 36, 0.9)', borderColor: '#333' }}
                 />
                 <Legend />
-                <Bar dataKey="value" name="Weight Value" fill="#4285F4" />
+                <Bar 
+                  dataKey="value" 
+                  name="Weight Value" 
+                  fill="#4285F4" 
+                  animationDuration={1000}
+                />
               </BarChart>
             </ResponsiveContainer>
-          </TabsContent>
-
-          <TabsContent value="activations" className="h-[300px] pt-4">
-            <div className="h-full flex flex-col items-center justify-center gap-4">
-              <div className="text-muted-foreground mb-2">
-                Activation maps visualization
-              </div>
-              <div className="grid grid-cols-4 gap-3 w-full">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div 
-                    key={i} 
-                    className="aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded border border-border flex items-center justify-center"
-                  >
-                    <span className="text-xs text-muted-foreground">Unit {i}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </CardContent>

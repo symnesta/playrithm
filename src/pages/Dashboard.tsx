@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Json } from "@/integrations/supabase/types";
 
 interface Experiment {
   id: string;
@@ -68,12 +69,12 @@ const Dashboard = () => {
         }
 
         // Transform data to match experiment interface
-        const formattedExperiments = data.map(exp => ({
+        const formattedExperiments: Experiment[] = data.map(exp => ({
           id: exp.id,
           name: exp.name,
           algorithm: exp.algorithm,
           dataset: exp.dataset,
-          performance: exp.performance || {},
+          performance: exp.performance as Record<string, any> || {},
           created_at: exp.created_at
         }));
 

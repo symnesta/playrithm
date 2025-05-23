@@ -93,6 +93,28 @@ const guides: PageGuide = {
     }
   ],
   
+  // Specific guide for Linear Regression
+  "/algorithms/linear-regression": [
+    {
+      target: ".dataset-selector",
+      title: "Select Dataset",
+      content: "Choose from sample or custom datasets to train your linear regression model.",
+      position: "right"
+    },
+    {
+      target: ".parameters-panel",
+      title: "Linear Regression Parameters",
+      content: "Adjust learning rate, epochs, and regularization to optimize your model.",
+      position: "left"
+    },
+    {
+      target: ".visualization-panel",
+      title: "Performance Visualization",
+      content: "Monitor your model's performance metrics and learning progress.",
+      position: "top"
+    }
+  ],
+  
   // Getting started guide
   "/getting-started": [
     {
@@ -112,10 +134,16 @@ const guides: PageGuide = {
 
 // Check if the current path matches any of our guide paths
 const getMatchingPath = (currentPath: string) => {
+  // First check for exact matches
   if (guides[currentPath]) return currentPath;
   
-  // Check for algorithm pages
-  if (currentPath.startsWith('/algorithms/')) return '/algorithms';
+  // Check for algorithm-specific pages
+  if (currentPath.startsWith('/algorithms/')) {
+    // Check if there's a specific guide for this algorithm
+    if (guides[currentPath]) return currentPath;
+    // Fall back to generic algorithms guide
+    return '/algorithms';
+  }
   
   return null;
 };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -26,7 +25,7 @@ const Index = () => {
           </p>
           
           <div className="grid gap-6 sm:grid-cols-2 max-w-xl mx-auto">
-            <Button size="lg" asChild>
+            <Button size="lg" asChild className="start-playground-btn">
               {isLoggedIn ? (
                 <Link to="/dashboard">
                   Go to Dashboard
@@ -40,12 +39,12 @@ const Index = () => {
               )}
             </Button>
             
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" variant="outline" asChild className="learn-more-btn">
               <Link to="/getting-started">Learn How It Works</Link>
             </Button>
           </div>
           
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
+          <div className="mt-16 grid gap-8 md:grid-cols-3 feature-cards">
             <div className="p-6 rounded-lg border border-border bg-card">
               <h3 className="text-xl font-semibold mb-3">Experiment</h3>
               <p className="text-muted-foreground">

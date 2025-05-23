@@ -1,138 +1,159 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, BookOpen, User, Save, Share, LogIn, UserPlus, LayoutDashboard, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  LogIn,
+  LogOut,
+  Menu,
+  User,
+  ChevronDown,
+  Home,
+  BookOpen,
+  BarChart4,
+  LineChart,
+} from "lucide-react";
+import { useMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
+import UserGuideButton from "./UserGuideButton";
 
 const Header = () => {
   const { isLoggedIn, user, logout } = useAuth();
+  const { isMobile } = useMobile();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const location = useLocation();
-  
-  const isAlgorithmPage = location.pathname.includes("/algorithms/");
-  const isAuthPage = location.pathname === "/login" || location.pathname === "/signup";
-  
-  // Always show algorithms in the navigation menu
-  const showAlgorithms = true;
+
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(!showMobileMenu);
+  };
 
   return (
-    <header className="flex items-center justify-between p-4 bg-card border-b border-border sticky top-0 z-10">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle sidebar</span>
-        </Button>
-        
-        <Link to="/" className="text-primary font-bold text-2xl mr-2">
-          <span className="text-white">Play</span>
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-visualization-purple">Rithm</span>
+    <header className="sticky top-0 z-40 border-b bg-background">
+      <div className="container flex h-16 items-center px-4">
+        <Link to="/" className="mr-6 flex items-center gap-2 font-semibold">
+          <BarChart4 className="h-6 w-6" />
+          <span className="hidden sm:inline">PlayRithm</span>
         </Link>
         
-        <div className="hidden sm:flex px-2 py-1 bg-muted text-xs rounded-full">
-          Beta
+        <nav className="flex items-center gap-4">
+          <Link to="/" className="hidden sm:inline-flex items-center gap-2">
+            <Home className="h-4 w-4" />
+            Home
+          </Link>
+          <Link to="/getting-started" className="hidden sm:inline-flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            Getting Started
+          </Link>
+          <Link to="/about" className="hidden sm:inline-flex items-center gap-2">
+            <LineChart className="h-4 w-4" />
+            About
+          </Link>
+        </nav>
+        
+        <div className="ml-auto flex items-center gap-2">
+          <UserGuideButton className="mr-2" />
+          
+          {isLoggedIn ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <User className="h-4 w-4" />
+                  <ChevronDown className="absolute bottom-1 right-1 h-3 w-3 opacity-70" />
+                  <span className="sr-only">Toggle user menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>{user?.email}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              {!isMobile && (
+                <>
+                  <Link to="/login">
+                    <Button variant="outline">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button>Sign Up</Button>
+                  </Link>
+                </>
+              )}
+            </>
+          )}
+
+          {isMobile && (
+            <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
         </div>
       </div>
       
-      <NavigationMenu className="hidden md:flex">
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <Link to="/getting-started" className="text-muted-foreground hover:text-foreground transition-colors px-4 py-2 flex items-center">
-              <BookOpen className="mr-2 h-4 w-4" />
+      {/* Mobile Menu */}
+      {isMobile && showMobileMenu && (
+        <div className="border-b bg-background pb-4">
+          <Separator />
+          <div className="container flex flex-col gap-4 px-4 py-4">
+            <Link to="/" className="flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
+            <Link to="/getting-started" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
               Getting Started
             </Link>
-          </NavigationMenuItem>
-          
-          {showAlgorithms && (
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Algorithms</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                  {[
-                    { name: "Linear Regression", description: "Predict continuous values based on linear relationships", path: "/algorithms/linear-regression" },
-                    { name: "Logistic Regression", description: "Binary classification model", path: "/algorithms/logistic-regression" },
-                    { name: "Decision Tree", description: "Tree-based decision making model", path: "/algorithms/decision-tree" },
-                    { name: "k-NN", description: "k-Nearest Neighbors classification algorithm", path: "/algorithms/k-nn" },
-                    { name: "SVM", description: "Support Vector Machine for classification tasks", path: "/algorithms/svm" },
-                    { name: "Neural Network", description: "Multi-layer perceptron for complex patterns", path: "/algorithms/neural-network" }
-                  ].map((algo) => (
-                    <li key={algo.name}>
-                      <Link
-                        to={algo.path}
-                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        <div className="text-sm font-medium leading-none">{algo.name}</div>
-                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                          {algo.description}
-                        </p>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          )}
-          
-          <NavigationMenuItem>
-            <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
+            <Link to="/about" className="flex items-center gap-2">
+              <LineChart className="h-4 w-4" />
               About
             </Link>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
-      
-      <div className="flex gap-2">
-        {isLoggedIn ? (
-          <>
-            {/* Show Dashboard button only when on an algorithm, getting started, or about page */}
-            {(isAlgorithmPage || location.pathname === "/getting-started" || location.pathname === "/about") && (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/dashboard">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
-                </Link>
-              </Button>
-            )}
-            
-            <Button variant="default" size="sm" onClick={logout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Log Out
-            </Button>
-          </>
-        ) : (
-          <>
-            {/* Only show login/signup when not on auth pages */}
-            {!isAuthPage && (
+            <Separator />
+            {!isLoggedIn ? (
               <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/login">
+                <Link to="/login">
+                  <Button variant="outline" className="w-full">
                     <LogIn className="mr-2 h-4 w-4" />
                     Log In
-                  </Link>
-                </Button>
-                <Button variant="default" size="sm" asChild>
-                  <Link to="/signup">
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Sign Up
-                  </Link>
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="w-full">Sign Up</Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/dashboard" className="flex items-center gap-2">
+                  <User className="mr-2 h-4 w-4" />
+                  {user?.email}
+                </Link>
+                <Button variant="outline" className="w-full" onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
                 </Button>
               </>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

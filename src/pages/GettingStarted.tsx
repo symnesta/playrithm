@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -20,7 +19,7 @@ const GettingStarted = () => {
               machine learning playground.
             </p>
             
-            <div className="bg-card border border-border rounded-lg p-6 mb-8">
+            <div className="bg-card border border-border rounded-lg p-6 mb-8 quick-start-guide">
               <h2 className="text-2xl font-semibold mb-4">Quick Start Guide</h2>
               <ol className="list-decimal pl-6 space-y-4">
                 <li>
@@ -57,30 +56,32 @@ const GettingStarted = () => {
             
             <h2 className="text-2xl font-semibold mt-8 mb-4">Understanding the Interface</h2>
             
-            <h3 className="text-xl font-semibold mt-6 mb-3">Main Canvas</h3>
-            <p>
-              The central area of each algorithm page displays the data points and, where applicable, 
-              the decision boundary of your model. As you adjust parameters, you'll see this 
-              visualization update in real-time.
-            </p>
-            
-            <h3 className="text-xl font-semibold mt-6 mb-3">Parameter Controls</h3>
-            <p>
-              Each algorithm has specific parameters that can be tuned. These controls allow you 
-              to experiment with different settings and observe their effects on model performance.
-            </p>
-            
-            <h3 className="text-xl font-semibold mt-6 mb-3">Performance Metrics</h3>
-            <p>
-              Track how well your model is performing with metrics such as accuracy, precision, 
-              recall, F1 score, or R-squared, depending on the type of algorithm.
-            </p>
-            
-            <h3 className="text-xl font-semibold mt-6 mb-3">Dataset Selection</h3>
-            <p>
-              Choose from pre-loaded datasets or, if you're a registered user, upload your own 
-              datasets to use with the algorithms.
-            </p>
+            <div className="interface-explanation">
+              <h3 className="text-xl font-semibold mt-6 mb-3">Main Canvas</h3>
+              <p>
+                The central area of each algorithm page displays the data points and, where applicable, 
+                the decision boundary of your model. As you adjust parameters, you'll see this 
+                visualization update in real-time.
+              </p>
+              
+              <h3 className="text-xl font-semibold mt-6 mb-3">Parameter Controls</h3>
+              <p>
+                Each algorithm has specific parameters that can be tuned. These controls allow you 
+                to experiment with different settings and observe their effects on model performance.
+              </p>
+              
+              <h3 className="text-xl font-semibold mt-6 mb-3">Performance Metrics</h3>
+              <p>
+                Track how well your model is performing with metrics such as accuracy, precision, 
+                recall, F1 score, or R-squared, depending on the type of algorithm.
+              </p>
+              
+              <h3 className="text-xl font-semibold mt-6 mb-3">Dataset Selection</h3>
+              <p>
+                Choose from pre-loaded datasets or, if you're a registered user, upload your own 
+                datasets to use with the algorithms.
+              </p>
+            </div>
             
             <div className="mt-12 text-center">
               <h3 className="text-xl font-semibold mb-4">Ready to dive in?</h3>

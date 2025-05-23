@@ -1,109 +1,73 @@
 
-import React, { ReactNode, useState } from "react";
-import Header from "@/components/Header";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Save, Share } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import SaveExperimentDialog from "./SaveExperimentDialog";
-import ShareExperimentDialog from "./ShareExperimentDialog";
+import React from "react";
+import Header from "./Header";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 interface AlgorithmPageProps {
   title: string;
   description: string;
-  children: ReactNode;
-  visualizationPanel: ReactNode;
-  parametersPanel: ReactNode;
-  datasetSelector: ReactNode;
+  datasetSelector: React.ReactNode;
+  parametersPanel: React.ReactNode;
+  visualizationPanel: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-const AlgorithmPage = ({
+const AlgorithmPage: React.FC<AlgorithmPageProps> = ({
   title,
   description,
-  children,
-  visualizationPanel,
-  parametersPanel,
   datasetSelector,
-}: AlgorithmPageProps) => {
-  const { isLoggedIn } = useAuth();
-  const navigate = useNavigate();
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  
-  // Sample data to be passed to the dialogs
-  const experimentData = {
-    algorithm: title,
-    dataset: "Sample Dataset", // This should be updated with the actual selected dataset
-    parameters: {} // This should be updated with the actual parameters
-  };
-
-  // Redirect guest users to login if they attempt certain actions
-  const handleGuestAction = () => {
-    navigate("/login");
-  };
-
-  const handleSaveExperiment = (experimentName: string) => {
-    console.log("Saving experiment:", experimentName);
-    // In a real app, this would save the experiment to the user's account
-  };
-
+  parametersPanel,
+  visualizationPanel,
+  children,
+}) => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       
       <main className="flex-1 p-4 md:p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <div>
-              <h1 className="text-3xl font-bold">{title}</h1>
-              <p className="text-muted-foreground mt-1">{description}</p>
-            </div>
-            
-            {/* Only show save/share buttons for logged-in users */}
-            {isLoggedIn ? (
-              <div className="flex gap-2 mt-4 md:mt-0">
-                <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setShareDialogOpen(true)}>
-                  <Share className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-              </div>
-            ) : (
-              <Button variant="outline" size="sm" onClick={handleGuestAction}>
-                Log in to save progress
-              </Button>
-            )}
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">{title}</h1>
+            <p className="text-muted-foreground mt-1">{description}</p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Left Panel - Dataset and Parameters */}
-            <div className="space-y-6">
-              {/* Dataset Selector */}
-              <div className="bg-card p-4 rounded-lg border border-border">
-                <h3 className="text-lg font-medium mb-4">Dataset</h3>
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="min-h-[500px] rounded-lg border border-border"
+          >
+            <ResizablePanel defaultSize={20} minSize={15} className="p-4 border-r border-border">
+              <h2 className="font-semibold mb-4">Dataset</h2>
+              <div className="dataset-selector">
                 {datasetSelector}
               </div>
-              
-              {/* Parameters Panel */}
-              <div className="bg-card p-4 rounded-lg border border-border">
-                <h3 className="text-lg font-medium mb-4">Parameters</h3>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            <ResizablePanel defaultSize={55}>
+              <div className="h-full flex flex-col">
+                <div className="flex-1 visualization-panel p-4">
+                  {visualizationPanel}
+                </div>
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            <ResizablePanel defaultSize={25} minSize={15} className="p-4 border-l border-border">
+              <h2 className="font-semibold mb-4">Parameters</h2>
+              <div className="parameters-panel">
                 {parametersPanel}
               </div>
-            </div>
-            
-            {/* Right Panel - Visualization and Results */}
-            <div className="lg:col-span-3 space-y-6">
-              <div className="bg-card p-4 rounded-lg border border-border">
-                {visualizationPanel}
-              </div>
-              
-              {/* Additional Content */}
-              {children}
-            </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+          
+          <div className="mt-6">
+            {children}
           </div>
         </div>
       </main>
@@ -111,22 +75,6 @@ const AlgorithmPage = ({
       <footer className="border-t border-border p-4 text-center text-sm text-muted-foreground">
         <p>PlayRithm - Interactive Machine Learning Playground</p>
       </footer>
-      
-      {/* Dialogs */}
-      <SaveExperimentDialog
-        open={saveDialogOpen}
-        onOpenChange={setSaveDialogOpen}
-        algorithmType={title}
-        datasetName={experimentData.dataset}
-        parameters={experimentData.parameters}
-        onSave={handleSaveExperiment}
-      />
-      
-      <ShareExperimentDialog
-        open={shareDialogOpen}
-        onOpenChange={setShareDialogOpen}
-        experimentData={experimentData}
-      />
     </div>
   );
 };

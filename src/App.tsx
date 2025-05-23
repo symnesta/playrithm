@@ -19,6 +19,8 @@ import GettingStarted from "./pages/GettingStarted";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import { UserGuideProvider } from "./contexts/UserGuideContext";
+import UserGuideTooltip from "./components/UserGuideTooltip";
 
 const queryClient = new QueryClient();
 
@@ -104,9 +106,12 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
+            <UserGuideProvider>
+              <Toaster />
+              <Sonner />
+              <AppRoutes />
+              <UserGuideTooltip />
+            </UserGuideProvider>
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>

@@ -118,7 +118,7 @@ const UserGuideTooltip: React.FC = () => {
         </div>
       </div>
     </Portal>
-  </Portal>
+  );
 };
 
 export default UserGuideTooltip;

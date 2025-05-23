@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,13 +21,13 @@ import {
   BarChart4,
   LineChart,
 } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import UserGuideButton from "./UserGuideButton";
 
 const Header = () => {
   const { isLoggedIn, user, logout } = useAuth();
-  const { isMobile } = useMobile();
+  const isMobile = useIsMobile();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const location = useLocation();
 

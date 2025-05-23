@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -60,7 +61,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold mb-6">Your Dashboard</h1>
           
           <Tabs defaultValue="experiments">
-            <TabsList className="mb-6 tabs-list">
+            <TabsList className="mb-6">
               <TabsTrigger value="experiments">Saved Experiments</TabsTrigger>
               <TabsTrigger value="datasets">Datasets</TabsTrigger>
             </TabsList>
@@ -71,7 +72,6 @@ const Dashboard = () => {
                 isLoading={isLoadingExperiments}
                 onNewExperiment={() => setAlgorithmDialogOpen(true)}
                 onExperimentsChange={setExperiments}
-                className="new-experiment-btn"
               />
             </TabsContent>
             
@@ -81,7 +81,6 @@ const Dashboard = () => {
                 isLoading={isLoadingDatasets}
                 onUploadDataset={() => setUploadDatasetDialogOpen(true)}
                 onDatasetsChange={setDatasets}
-                className="upload-dataset-btn"
               />
             </TabsContent>
           </Tabs>

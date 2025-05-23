@@ -19,15 +19,13 @@ interface DatasetsListProps {
   isLoading: boolean;
   onUploadDataset: () => void;
   onDatasetsChange: (datasets: Dataset[]) => void;
-  className?: string;
 }
 
 const DatasetsList = ({ 
   datasets, 
   isLoading, 
   onUploadDataset,
-  onDatasetsChange,
-  className
+  onDatasetsChange
 }: DatasetsListProps) => {
   const { toast } = useToast();
 
@@ -64,7 +62,7 @@ const DatasetsList = ({
     <>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Datasets</h2>
-        <Button onClick={onUploadDataset} className={className}>
+        <Button onClick={onUploadDataset}>
           <FileUp className="mr-2 h-4 w-4" />
           Upload Dataset
         </Button>

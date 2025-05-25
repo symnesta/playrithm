@@ -2,6 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
+import HomepageTour from "@/components/HomepageTour";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,10 +13,11 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
+      <HomepageTour />
       
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-6">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-6">
+          <h1 className="text-5xl font-bold mb-6 tour-welcome-title">
             <span className="text-white">Welcome to </span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-visualization-purple">PlayRithm</span>
           </h1>
@@ -28,12 +30,12 @@ const Index = () => {
           <div className="grid gap-6 sm:grid-cols-2 max-w-xl mx-auto">
             <Button size="lg" asChild>
               {isLoggedIn ? (
-                <Link to="/dashboard">
+                <Link to="/dashboard" className="tour-dashboard">
                   Go to Dashboard
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               ) : (
-                <Link to="/algorithms/linear-regression">
+                <Link to="/algorithms/linear-regression" className="tour-start-playground">
                   Start Playground
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -41,11 +43,11 @@ const Index = () => {
             </Button>
             
             <Button size="lg" variant="outline" asChild>
-              <Link to="/getting-started">Learn How It Works</Link>
+              <Link to="/getting-started" className="tour-learn-more">Learn How It Works</Link>
             </Button>
           </div>
           
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
+          <div className="mt-16 grid gap-8 md:grid-cols-3 tour-features">
             <div className="p-6 rounded-lg border border-border bg-card">
               <h3 className="text-xl font-semibold mb-3">Experiment</h3>
               <p className="text-muted-foreground">

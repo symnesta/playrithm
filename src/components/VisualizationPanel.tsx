@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +8,7 @@ import {
 } from "recharts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import SHAPVisualization from "./SHAPVisualization";
 
 interface TrainingMetric {
   epoch: number;
@@ -150,6 +150,7 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
             <TabsTrigger value="decision-boundary">Decision Boundary</TabsTrigger>
             <TabsTrigger value="performance">Performance Metrics</TabsTrigger>
             <TabsTrigger value="weights">Model Parameters</TabsTrigger>
+            <TabsTrigger value="shap">SHAP Explanations</TabsTrigger>
           </TabsList>
 
           <TabsContent value="metrics" className="h-[300px] pt-4">
@@ -361,6 +362,10 @@ const VisualizationPanel: React.FC<VisualizationPanelProps> = ({
                 />
               </BarChart>
             </ResponsiveContainer>
+          </TabsContent>
+
+          <TabsContent value="shap" className="h-[300px] pt-4">
+            <SHAPVisualization modelType={modelType} />
           </TabsContent>
         </Tabs>
       </CardContent>
